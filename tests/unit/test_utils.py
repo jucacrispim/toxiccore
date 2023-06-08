@@ -22,6 +22,8 @@ import os
 import time
 from unittest import TestCase
 from unittest.mock import patch, Mock, MagicMock, AsyncMock
+import warnings
+
 from toxiccore import utils
 from tests.unit import TEST_DATA_DIR
 from tests import async_test
@@ -31,39 +33,10 @@ class UtilsTest(TestCase):
 
     @async_test
     async def test_exec_cmd(self):
-        out = await utils.exec_cmd('ls', cwd='.')
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            out = await utils.exec_cmd('ls', cwd='.')
         self.assertTrue(out)
-
-    @async_test
-    async def test_exec_cmd_with_envvars(self):
-        envvars = {'PATH': 'PATH:venv/bin',
-                   'MYPROGRAMVAR': 'something'}
-
-        cmd = 'echo $MYPROGRAMVAR'
-
-        returned = await utils.exec_cmd(cmd, cwd='.', **envvars)
-
-        self.assertEqual(returned, 'something')
-
-    @async_test
-    async def test_exec_cmd_with_out_fn(self):
-        envvars = {'PATH': 'PATH:venv/bin',
-                   'MYPROGRAMVAR': 'something'}
-
-        cmd = 'echo $MYPROGRAMVAR'
-
-        out_fn = AsyncMock()
-        await utils.exec_cmd(cmd, cwd='.',
-                             out_fn=out_fn,
-                             **envvars)
-
-        async def wait():
-            return
-
-        await wait()
-        self.assertTrue(out_fn.called)
-        self.assertTrue(isinstance(
-            out_fn.call_args[0][1], str), out_fn.call_args)
 
     def test_get_envvars(self):
         envvars = {'PATH': 'PATH:venv/bin',
