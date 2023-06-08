@@ -19,7 +19,7 @@
 
 import json
 from unittest import mock, TestCase
-from toxiccore import protocol
+from toxiccore import protocol, utils
 from tests import async_test
 
 
@@ -35,8 +35,8 @@ class BaseToxicProtocolTest(TestCase):
             return_value=mock.MagicMock())
         self.protocol._stream_writer.close = mock.MagicMock()
         self.protocol._stream_reader.set_exception = mock.MagicMock()
-        self.protocol.salt = protocol.utils.bcrypt.gensalt(4)
-        self.protocol.encrypted_token = protocol.utils.bcrypt_string(
+        self.protocol.salt = utils.bcrypt.gensalt(4)
+        self.protocol.encrypted_token = utils.bcrypt_string(
             '123sd', self.protocol.salt)
 
         self.response = None
@@ -145,7 +145,7 @@ class BaseToxicProtocolTest(TestCase):
         self.assertIsNone(self.protocol._stream_writer)
         self.assertTrue(self.protocol.connection_lost_cb.called)
 
-    @mock.patch.object(protocol.utils, 'log', mock.Mock())
+    @mock.patch.object(protocol.LoggerMixin, 'log', mock.Mock())
     @async_test
     async def test_check_data_without_data(self):
         self.full_message = b''
@@ -154,7 +154,7 @@ class BaseToxicProtocolTest(TestCase):
 
         self.assertEqual(self.response['code'], 1)
 
-    @mock.patch.object(protocol.utils, 'log', mock.Mock())
+    @mock.patch.object(protocol.LoggerMixin, 'log', mock.Mock())
     @async_test
     async def test_check_data_without_token(self):
         message = '{"salci": "fufu"}'
@@ -164,12 +164,12 @@ class BaseToxicProtocolTest(TestCase):
         await self.protocol.check_data()
         self.assertEqual(self.response['code'], 2)
 
-    @mock.patch.object(protocol.utils, 'log', mock.Mock())
+    @mock.patch.object(protocol.LoggerMixin, 'log', mock.Mock())
     @async_test
     async def test_check_data_with_bad_token(self):
         message = '{"salci": "fufu", "token": "123sdf"}'
-        self.protocol.salt = protocol.utils.bcrypt.gensalt(4)
-        self.protocol.encrypted_token = protocol.utils.bcrypt_string(
+        self.protocol.salt = utils.bcrypt.gensalt(4)
+        self.protocol.encrypted_token = utils.bcrypt_string(
             '123sd', self.protocol.salt)
         self.full_message = '{}\n'.format(len(message)) + message
         self.full_message = self.full_message.encode('utf-8')
@@ -177,7 +177,7 @@ class BaseToxicProtocolTest(TestCase):
         await self.protocol.check_data()
         self.assertEqual(self.response['code'], 3)
 
-    @mock.patch.object(protocol.utils.LoggerMixin, 'log', mock.Mock())
+    @mock.patch.object(protocol.LoggerMixin, 'log', mock.Mock())
     @async_test
     async def test_check_data_without_action(self):
         message = '{"salci": "fufu", "token": "123sd"}'

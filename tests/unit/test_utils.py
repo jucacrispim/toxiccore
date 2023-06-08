@@ -21,7 +21,7 @@ import datetime
 import os
 import time
 from unittest import TestCase
-from unittest.mock import patch, Mock, MagicMock, AsyncMock
+from unittest.mock import patch, Mock, MagicMock
 import warnings
 
 from toxiccore import utils
