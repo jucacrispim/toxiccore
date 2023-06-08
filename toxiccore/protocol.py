@@ -23,10 +23,13 @@ from collections import OrderedDict
 import json
 import time
 import traceback
+
+from .socks import read_stream, write_stream
+from .utils import LoggerMixin, compare_bcrypt_string
 from . import utils
 
 
-class BaseToxicProtocol(asyncio.StreamReaderProtocol, utils.LoggerMixin):
+class BaseToxicProtocol(asyncio.StreamReaderProtocol, LoggerMixin):
     """ Base protocol for toxicbulid servers. To create your own server
     extend this class and implement the client_connected method.
 
@@ -121,7 +124,7 @@ class BaseToxicProtocol(asyncio.StreamReaderProtocol, utils.LoggerMixin):
             await self.send_response(code=2, body={'error': msg})
             return self.close_connection()
 
-        if not utils.compare_bcrypt_string(token, self.encrypted_token):
+        if not compare_bcrypt_string(token, self.encrypted_token):
             msg = 'Bad auth token'
             self.log(msg, level='warning')
             await self.send_response(code=3, body={'error': msg})
@@ -172,14 +175,14 @@ class BaseToxicProtocol(asyncio.StreamReaderProtocol, utils.LoggerMixin):
         # version of Python where this bugs exists is supported anymore.
         # patch by @RemiCardona for websockets on github.
         async with self._writer_lock:
-            await utils.write_stream(self._stream_writer, data,
-                                     timeout=timeout)
+            await write_stream(self._stream_writer, data,
+                               timeout=timeout)
 
     async def get_raw_data(self, timeout=None):
         """ Returns the raw data sent by the client
         :param timeout: Timeout for the operation. If None there is no timeout
         """
-        r = await utils.read_stream(self._stream_reader, timeout=timeout)
+        r = await read_stream(self._stream_reader, timeout=timeout)
         return r
 
     async def get_json_data(self, timeout=None):

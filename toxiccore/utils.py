@@ -37,6 +37,8 @@ import warnings
 import bcrypt
 
 from .exceptions import ConfigError
+from .socks import (read_stream as read_sock_stream,
+                    write_stream as write_sock_stream)
 
 
 DTFORMAT = '%w %m %d %H:%M:%S %Y %z'
@@ -346,47 +348,24 @@ def inherit_docs(cls):
     return cls
 
 
-async def read_stream(reader, timeout=None):
+async def read_stream(reader, timeout=None):  # pragma no cover
     """ Reads the input stream. First reads the bytes until the first "\\n".
     These first bytes are the length of the full message.
 
     :param reader: An instance of :class:`asyncio.StreamReader`
     :param timeout: Timeout for the operation. If None there is no timeout
+
+    DEPRECATED: Use toxiccore.socks.read_stream
     """
 
-    async def do_read(qbytes):
-        r = await asyncio.wait_for(reader.read(qbytes), timeout)
-        return r
-
-    data = await do_read(1)
-    if not data or data == b'\n':
-        raw_data = b''
-        raw_data_list = [b'']
-    else:
-        char = None
-        while char != b'\n' and char != b'':
-            char = await do_read(1)
-            data += char
-
-        len_data = int(data)
-        if len_data <= READ_CHUNK_LEN:
-            raw_data = await do_read(len_data)
-        else:
-            raw_data = await do_read(READ_CHUNK_LEN)
-
-        raw_data_len = len(raw_data)
-        raw_data_list = [raw_data]
-        while raw_data_len < len_data:
-            left = len_data - raw_data_len
-            next_chunk = left if left < READ_CHUNK_LEN else READ_CHUNK_LEN
-            new_data = await do_read(next_chunk)
-            raw_data_len += len(new_data)
-            raw_data_list.append(new_data)
-
-    return b''.join(raw_data_list)
+    m = "toxiccore.utils.read_string is deprecated. "
+    m += "Use toxiccore.socks.read_stream"
+    warnings.warn(m, DeprecationWarning)
+    r = await read_sock_stream(reader, timeout=timeout)
+    return r
 
 
-async def write_stream(writer, data, timeout=None):
+async def write_stream(writer, data, timeout=None):  # pragma no cover
     """ Writes ``data`` to output. Encodes data to utf-8 and prepend the
     lenth of the data before sending it.
 
@@ -394,22 +373,15 @@ async def write_stream(writer, data, timeout=None):
     :param data: String data to be sent.
     :param timeout: Timeout for the write operation. If None there is
       no timeout
+
+    DEPRECATED: Use toxiccore.socks.write_stream
     """
 
-    if writer is None:
-        return False
-
-    data = data.encode('utf-8')
-    data = '{}\n'.format(len(data)).encode('utf-8') + data
-    init = 0
-    chunk = data[:WRITE_CHUNK_LEN]
-    while chunk:
-        writer.write(chunk)
-        await asyncio.wait_for(writer.drain(), timeout)
-        init += WRITE_CHUNK_LEN
-        chunk = data[init: init + WRITE_CHUNK_LEN]
-
-    return True
+    m = "toxiccore.utils.write_string is deprecated. "
+    m += "Use toxiccore.socks.write_stream"
+    warnings.warn(m, DeprecationWarning)
+    r = await write_sock_stream(writer, data, timeout=timeout)
+    return r
 
 
 def bcrypt_string(src_string, salt=None):

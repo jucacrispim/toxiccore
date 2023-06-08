@@ -22,8 +22,10 @@ from collections import OrderedDict
 import json
 import ssl
 import traceback
-from . import utils
+
 from .exceptions import ToxicClientException, BadJsonData
+from .socks import read_stream, write_stream
+from .utils import LoggerMixin
 
 
 __doc__ = """This module implements a base client for basic
@@ -43,7 +45,7 @@ Usage:
 """
 
 
-class BaseToxicClient(utils.LoggerMixin):
+class BaseToxicClient(LoggerMixin):
 
     """ Base client for communication with toxicbuild servers. """
 
@@ -123,7 +125,7 @@ class BaseToxicClient(utils.LoggerMixin):
           no timeout.
         """
         data = json.dumps(data)
-        await utils.write_stream(self.writer, data, timeout=timeout)
+        await write_stream(self.writer, data, timeout=timeout)
 
     async def read(self, timeout=None):
         """Reads data from the server. Expects a json.
@@ -133,7 +135,7 @@ class BaseToxicClient(utils.LoggerMixin):
         """
         # '{}' is decoded as an empty dict, so in json
         # context we can consider it as being a False json
-        data = await utils.read_stream(self.reader, timeout=timeout)
+        data = await read_stream(self.reader, timeout=timeout)
         data = data.decode() or '{}'
         try:
             json_data = json.loads(data, object_pairs_hook=OrderedDict)
