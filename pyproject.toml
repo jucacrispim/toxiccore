@@ -16,7 +16,7 @@ readme = "README.md"
 
 dependencies = [
     'bcrypt>=4.0.1',
-    'mando>=0.7.1',
+    'mando>=0.6.4',
     'pyyaml>=6.0',
     'aiosmtplib>=2.0.2',
     'aiohttp>=3.8.4',
