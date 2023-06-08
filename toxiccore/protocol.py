@@ -26,7 +26,6 @@ import traceback
 
 from .socks import read_stream, write_stream
 from .utils import LoggerMixin, compare_bcrypt_string
-from . import utils
 
 
 class BaseToxicProtocol(asyncio.StreamReaderProtocol, LoggerMixin):

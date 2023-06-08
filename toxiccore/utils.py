@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with toxicbuild. If not, see <http://www.gnu.org/licenses/>.
 
-
-import asyncio
 import base64
 from concurrent.futures import ThreadPoolExecutor
 import copy
