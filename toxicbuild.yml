@@ -3,6 +3,10 @@ language: python
 versions:
   - '3.11'
 
+
+system_packages:
+  - procps
+
 steps:
   - name: Linter checks
     command: ./scripts/run_linter.sh
