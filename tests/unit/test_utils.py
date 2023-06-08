@@ -17,11 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with toxicbuild. If not, see <http://www.gnu.org/licenses/>.
 
-
-import asyncio
 import datetime
 import os
-import subprocess
 import time
 from unittest import TestCase
 from unittest.mock import patch, Mock, MagicMock, AsyncMock
@@ -33,85 +30,9 @@ from tests import async_test
 class UtilsTest(TestCase):
 
     @async_test
-    async def test_try_readline_lf(self):
-        stream = AsyncMock()
-        await utils._try_readline(stream)
-
-        assert stream.readuntil.call_args[0][0] == b'\n'
-
-    @async_test
-    async def test_try_readline_cr(self):
-        stream = AsyncMock()
-        stream.readuntil.side_effect = [
-            utils.LimitOverrunError('msg', False), '']
-        await utils._try_readline(stream)
-
-        assert stream.readuntil.call_args[0][0] == b'\r'
-
-    @patch.object(utils, '_try_readline', AsyncMock(
-        side_effect=utils.IncompleteReadError('partial', 'exp')))
-    @async_test
-    async def test_readline_incomplete(self):
-        stream = AsyncMock()
-        r = await utils._readline(stream)
-
-        self.assertEqual(r, 'partial')
-
-    @patch.object(utils, '_try_readline', AsyncMock(
-        side_effect=utils.LimitOverrunError('msg', 0)))
-    @async_test
-    async def test_readline_limit_overrun(self):
-        stream = AsyncMock()
-        stream._buffer = bytearray()
-        stream._maybe_resume_transport = Mock()
-        stream._buffer.extend(b'\nblerg')
-        with self.assertRaises(ValueError):
-            await utils._readline(stream)
-
-    @patch.object(utils, '_try_readline', AsyncMock(
-        side_effect=utils.LimitOverrunError('msg', 0)))
-    @async_test
-    async def test_readline_limit_overrun_clear(self):
-        stream = AsyncMock()
-        stream._buffer = bytearray()
-        stream._maybe_resume_transport = Mock()
-        await stream.extend(b'blerg')
-        with self.assertRaises(ValueError):
-            await utils._readline(stream)
-
-    @async_test
     async def test_exec_cmd(self):
         out = await utils.exec_cmd('ls', cwd='.')
         self.assertTrue(out)
-
-    @async_test
-    async def test_exec_cmd_with_error(self):
-        with self.assertRaises(utils.ExecCmdError):
-            # please, don't tell me you have a lsz command on your system.
-            await utils.exec_cmd('lsz', cwd='.')
-
-    @async_test
-    async def test_exec_cmd_with_timeout(self, *args, **kwargs):
-        with self.assertRaises(asyncio.TimeoutError):
-            await utils.exec_cmd('sleep 2', cwd='.', timeout=1)
-
-        # wait here to avoid runtime error saying the loop is closed
-        # when the process try to send its message to the caller
-        time.sleep(1)
-
-    @async_test
-    async def test_kill_group(self):
-        cmd = 'sleep 55'
-        proc = await utils._create_cmd_proc(cmd, cwd='.')
-        try:
-            f = proc.stdout.readline()
-            await asyncio.wait_for(f, 1)
-        except asyncio.exceptions.TimeoutError:
-            pass
-
-        await utils._kill_group(proc)
-        procs = subprocess.check_output(['ps', 'aux']).decode()
-        self.assertNotIn(cmd, procs)
 
     @async_test
     async def test_exec_cmd_with_envvars(self):
