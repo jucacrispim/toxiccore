@@ -6,12 +6,12 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "toxiccore"
+name = "toxicbuild-core"
 dynamic = ["version"]
 authors = [
-  { name="me@myself.com" },
+  { name="juca@poraodojuca.dev" },
 ]
-description = "toxiccore: My super cool project"
+description = "toxiccore: Shared functionalities for toxicbuild"
 readme = "README.md"
 
 dependencies = [
@@ -25,15 +25,17 @@ dependencies = [
 classifiers = [
     'Development Status :: 3 - Alpha',
     'Intended Audience :: Developers',
-    'License :: OSI Approved :: GNU General Public License (GPL)',
     'Natural Language :: English',
     'Operating System :: OS Independent',
     'Programming Language :: Python :: 3',
     'Topic :: Software Development :: Libraries :: Python Modules',
-    'License :: OSI Approved :: GNU General Public License v3 (GPLv3)'
+    'License :: OSI Approved :: GNU Affero General Public License v3',
 
 ]
 
+
+[project.urls]
+"Homepage" = "https://docs.poraodjuca.dev/toxiccore/index.html"
 
 [tool.setuptools.packages.find]
 where = ["."]

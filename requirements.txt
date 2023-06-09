@@ -32,3 +32,5 @@ imagesize==1.4.1
 snowballstemmer==2.2.0
 sphinx==7.0.1
 sphinx_pdj_theme==0.4.0
+build==0.10.0
+twine==4.0.2

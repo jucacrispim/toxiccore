@@ -15,7 +15,7 @@ To install toxiccore, use pip:
 
 .. code-block:: sh
 
-    $ pip install toxiccore
+    $ pip install toxicbuild-core
 
 
 And that's it!
