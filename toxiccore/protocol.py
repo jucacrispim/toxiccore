@@ -29,18 +29,22 @@ from .utils import LoggerMixin, compare_bcrypt_string
 
 
 class BaseToxicProtocol(asyncio.StreamReaderProtocol, LoggerMixin):
-    """ Base protocol for toxicbulid servers. To create your own server
+    """ Base protocol for toxicbulid servers. To create your own protocol
     extend this class and implement the client_connected method.
 
     Example:
+    --------
 
+    .. code-block:: python
 
-    class MyServer(BaseToxicProtocol):
+        class MyServer(BaseToxicProtocol):
 
-        async def client_connected(self):
-            assert self.action
-             r = await fn(**self.data)
-             self.send_response({'some': 'thing'})
+            async def client_connected(self):
+                assert self.action
+                 r = await fn(**self.data)
+                 # code == 0 means everything ok.
+                 # code > 0 means something went wrong
+                 self.send_response(code=0, body={'some': 'thing'})
 
     """
 

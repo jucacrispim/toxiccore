@@ -144,28 +144,6 @@ def get_envvars(envvars, use_local_envvars=True):
     return newvars
 
 
-async def exec_cmd(cmd, cwd, timeout=3600, out_fn=None, **envvars):
-    """ Executes a shell command. Raises with the command output
-    if return code > 0.
-
-    :param cmd: command to run.
-    :param cwd: Directory to execute the command.
-    :param timeout: How long we should wait some output. Default
-      is 3600.
-    :param out_fn: A coroutine that receives each line of the step
-      output. The coroutine signature must be in the form:
-      mycoro(line_index, line).
-    :param envvars: Environment variables to be used in the command.
-
-    DEPRECATED: Use toxiccore.shell.exec_cmd
-    """
-    m = "toxiccore.utils.exec_cmd is deprecated. Use toxiccore.shell.exec_cmd"
-    warnings.warn(m, DeprecationWarning)
-    from .shell import exec_cmd as exec_sh_cmd
-    r = await exec_sh_cmd(cmd, cwd, timeout=timeout, out_fn=out_fn, **envvars)
-    return r
-
-
 def load_module_from_content(module_content):
     """Loads a module from a string that is the contents of the module.
 
@@ -346,42 +324,6 @@ def inherit_docs(cls):
     return cls
 
 
-async def read_stream(reader, timeout=None):  # pragma no cover
-    """ Reads the input stream. First reads the bytes until the first "\\n".
-    These first bytes are the length of the full message.
-
-    :param reader: An instance of :class:`asyncio.StreamReader`
-    :param timeout: Timeout for the operation. If None there is no timeout
-
-    DEPRECATED: Use toxiccore.socks.read_stream
-    """
-
-    m = "toxiccore.utils.read_string is deprecated. "
-    m += "Use toxiccore.socks.read_stream"
-    warnings.warn(m, DeprecationWarning)
-    r = await read_sock_stream(reader, timeout=timeout)
-    return r
-
-
-async def write_stream(writer, data, timeout=None):  # pragma no cover
-    """ Writes ``data`` to output. Encodes data to utf-8 and prepend the
-    lenth of the data before sending it.
-
-    :param writer: An instance of asyncio.StreamWriter
-    :param data: String data to be sent.
-    :param timeout: Timeout for the write operation. If None there is
-      no timeout
-
-    DEPRECATED: Use toxiccore.socks.write_stream
-    """
-
-    m = "toxiccore.utils.write_string is deprecated. "
-    m += "Use toxiccore.socks.write_stream"
-    warnings.warn(m, DeprecationWarning)
-    r = await write_sock_stream(writer, data, timeout=timeout)
-    return r
-
-
 def bcrypt_string(src_string, salt=None):
     encoding = sys.getdefaultencoding()
     if not salt:
@@ -528,8 +470,68 @@ async def read_file(filename):
     contents = (await run_in_thread(_read, filename)).result()
     return contents
 
-# Sorry, but not willing to test  a daemonizer.
 
+# deprecated stuff
+
+async def exec_cmd(cmd, cwd, timeout=3600, out_fn=None, **envvars):
+    """ Executes a shell command. Raises with the command output
+    if return code > 0.
+
+    :param cmd: command to run.
+    :param cwd: Directory to execute the command.
+    :param timeout: How long we should wait some output. Default
+      is 3600.
+    :param out_fn: A coroutine that receives each line of the step
+      output. The coroutine signature must be in the form:
+      mycoro(line_index, line).
+    :param envvars: Environment variables to be used in the command.
+
+    DEPRECATED: Use :func:`toxiccore.shell.exec_cmd`
+    """
+    m = "toxiccore.utils.exec_cmd is deprecated. Use toxiccore.shell.exec_cmd"
+    warnings.warn(m, DeprecationWarning)
+    from .shell import exec_cmd as exec_sh_cmd
+    r = await exec_sh_cmd(cmd, cwd, timeout=timeout, out_fn=out_fn, **envvars)
+    return r
+
+
+async def read_stream(reader, timeout=None):  # pragma no cover
+    """ Reads the input stream. First reads the bytes until the first "\\n".
+    These first bytes are the length of the full message.
+
+    :param reader: An instance of :class:`asyncio.StreamReader`
+    :param timeout: Timeout for the operation. If None there is no timeout
+
+    DEPRECATED: Use :func:`toxiccore.socks.read_stream`
+    """
+
+    m = "toxiccore.utils.read_string is deprecated. "
+    m += "Use toxiccore.socks.read_stream"
+    warnings.warn(m, DeprecationWarning)
+    r = await read_sock_stream(reader, timeout=timeout)
+    return r
+
+
+async def write_stream(writer, data, timeout=None):  # pragma no cover
+    """ Writes ``data`` to output. Encodes data to utf-8 and prepend the
+    lenth of the data before sending it.
+
+    :param writer: An instance of asyncio.StreamWriter
+    :param data: String data to be sent.
+    :param timeout: Timeout for the write operation. If None there is
+      no timeout
+
+    DEPRECATED: Use :func:`toxiccore.socks.write_stream`
+    """
+
+    m = "toxiccore.utils.write_string is deprecated. "
+    m += "Use toxiccore.socks.write_stream"
+    warnings.warn(m, DeprecationWarning)
+    r = await write_sock_stream(writer, data, timeout=timeout)
+    return r
+
+
+# Sorry, but not willing to test  a daemonizer.
 
 def daemonize(call, cargs, ckwargs, stdout, stderr,
               workdir, pidfile):  # pragma: no cover

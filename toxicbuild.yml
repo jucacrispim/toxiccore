@@ -16,3 +16,9 @@ steps:
 
   - name: Unit tests & coverage
     command: ./scripts/check_coverage.sh
+
+  - name: Build docs
+    command: ./scripts/build_docs.sh
+
+  - name: Upload docs
+    command: ./scripts/upload_docs.sh
