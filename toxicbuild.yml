@@ -6,6 +6,7 @@ versions:
 
 system_packages:
   - procps
+  - build-essential
 
 steps:
   - name: Linter checks
