@@ -169,9 +169,11 @@ class PythonPluginConfig(LanguagePluginConfig):
     def get_config(self):
         req = self.conf.get('requirements_file', 'requirements.txt')
         pyversion = self.lang_ver
+        extra_indexes = self.conf.get('extra_indexes') or []
         return {'name': 'python-venv',
                 'pyversion': pyversion,
-                'requirements_file': req}
+                'requirements_file': req,
+                'extra_indexes': extra_indexes}
 
 
 class LanguageConfig:

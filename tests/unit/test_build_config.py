@@ -141,11 +141,13 @@ class APTPluginConfigTest(TestCase):
 class PythonPluginTest(TestCase):
 
     def test_get_config(self):
-        conf = {'requirements_file': 'req.txt'}
+        conf = {'requirements_file': 'req.txt',
+                'extra_indexes': ['https://a.pypi.url']}
         lang_ver = 'python3.5'
         expected = {'name': 'python-venv',
                     'pyversion': lang_ver,
-                    'requirements_file': 'req.txt'}
+                    'requirements_file': 'req.txt',
+                    'extra_indexes': ['https://a.pypi.url']}
         plugin = build_config.PythonPluginConfig(lang_ver, conf)
         self.assertEqual(expected, plugin.get_config())
 
@@ -217,7 +219,8 @@ class LanguageConfigTest(TestCase):
 
         expected = [{'name': 'python-venv',
                      'pyversion': 'python3.7',
-                     'requirements_file': 'requirements.txt'}]
+                     'requirements_file': 'requirements.txt',
+                     'extra_indexes': []}]
 
         self.assertEqual(r, expected)
 
