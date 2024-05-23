@@ -6,7 +6,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "toxicbuild-core"
+name = "toxiccore"
 dynamic = ["version"]
 authors = [
   { name="juca@poraodojuca.dev" },
