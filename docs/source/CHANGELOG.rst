@@ -1,6 +1,10 @@
 Changelog
 =========
 
+* v0.12.0
+
+  - Use factories for read and write streams on BaseToxicClient
+
 * v0.11.0
 
   - Add extra_indexes to python language config

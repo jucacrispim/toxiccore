@@ -49,6 +49,9 @@ class BaseToxicClient(LoggerMixin):
 
     """ Base client for communication with toxicbuild servers. """
 
+    READ_STREAM_FN = read_stream
+    WRITE_STREAM_FN = write_stream
+
     def __init__(self, host, port, use_ssl=False,
                  validate_cert=True, **ssl_kw):
         """:para host: The host to connect
@@ -125,7 +128,7 @@ class BaseToxicClient(LoggerMixin):
           no timeout.
         """
         data = json.dumps(data)
-        await write_stream(self.writer, data, timeout=timeout)
+        await type(self).WRITE_STREAM_FN(self.writer, data, timeout=timeout)
 
     async def read(self, timeout=None):
         """Reads data from the server. Expects a json.
@@ -135,7 +138,7 @@ class BaseToxicClient(LoggerMixin):
         """
         # '{}' is decoded as an empty dict, so in json
         # context we can consider it as being a False json
-        data = await read_stream(self.reader, timeout=timeout)
+        data = await type(self).READ_STREAM_FN(self.reader, timeout=timeout)
         data = data.decode() or '{}'
         try:
             json_data = json.loads(data, object_pairs_hook=OrderedDict)
