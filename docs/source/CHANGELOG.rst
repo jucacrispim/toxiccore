@@ -2,6 +2,10 @@ Changelog
 =========
 
 
+* v0.13.1
+
+  - Kill command groups on exception
+
 * v0.13.0
 
   - Rebase when pulling changes from remote repo

@@ -43,20 +43,23 @@ async def exec_cmd(cmd, cwd, timeout=3600, out_fn=None, **envvars):
     proc = await _create_cmd_proc(cmd, cwd, **envvars)
     out = []
 
-    line_index = 0
-    while proc.returncode is None or not out:
-        outline = await asyncio.wait_for(_readline(proc.stdout), timeout)
-        outline = outline.decode()
-        if out_fn:
-            ensure_future(out_fn(line_index, outline))
+    try:
+        line_index = 0
+        while proc.returncode is None or not out:
+            outline = await asyncio.wait_for(_readline(proc.stdout), timeout)
+            outline = outline.decode()
+            if out_fn:
+                ensure_future(out_fn(line_index, outline))
 
-        line_index += 1
-        out.append(outline)
+            line_index += 1
+            out.append(outline)
 
-    output = ''.join(out).strip('\n')
-    # we must ensure that all process started by our command are
-    # dead.
-    await _kill_group(proc)
+        output = ''.join(out).strip('\n')
+    finally:
+        # we must ensure that all process started by our command are
+        # dead.
+        await _kill_group(proc)
+
     if int(proc.returncode) > 0:
         raise ExecCmdError(output)
 
