@@ -1,6 +1,11 @@
 Changelog
 =========
 
+
+* v0.13.0
+
+  - Rebase when pulling changes from remote repo
+
 * v0.12.0
 
   - Use factories for read and write streams on BaseToxicClient

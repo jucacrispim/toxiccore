@@ -9,4 +9,4 @@ make_pyflakes_happy = [get_vcs, BaseToxicProtocol, BaseToxicClient]
 
 del make_pyflakes_happy
 
-__version__ = '0.12.0'
+__version__ = '0.13.0'

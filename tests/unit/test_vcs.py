@@ -249,7 +249,7 @@ class GitTest(TestCase):
 
     @async_test
     async def test_pull(self):
-        expected_cmd = 'git pull --no-edit origin master'
+        expected_cmd = 'git pull --no-edit origin master --rebase'
 
         async def e(cmd, cwd):
             assert cmd == expected_cmd

@@ -270,8 +270,12 @@ class Git(VCS):
 
     async def pull(self, branch_name, remote_name='origin'):
 
-        cmd = '{} pull --no-edit {} {}'.format(self.vcsbin, remote_name,
-                                               branch_name)
+        # rebase here because we don't care about the
+        # ci's repo history. Whatever the original repo
+        # does we simply follow
+        cmd = '{} pull --no-edit {} {} --rebase'.format(
+            self.vcsbin, remote_name,
+            branch_name)
 
         ret = await self.exec_cmd(cmd)
         return ret
