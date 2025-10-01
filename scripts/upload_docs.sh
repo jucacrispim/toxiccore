@@ -1,8 +1,7 @@
 #!/bin/bash
 
-project=toxiccore
 cd docs/build
-mv html $project
-tar -czf docs.tar.gz $project
+mv html mongomotor
+tar -czf mmdocs.tar.gz mongomotor
 
-curl -F 'file=@docs.tar.gz' https://docs.poraodojuca.dev/e/ -H "Authorization: Key $TUPI_AUTH_KEY"
+curl -F 'file=@mmdocs.tar.gz' https://docs.poraodojuca.dev/e/ -H "Authorization: Key $TUPI_AUTH_KEY"

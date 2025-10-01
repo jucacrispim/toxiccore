@@ -11,7 +11,8 @@ from unittest.mock import (_is_list, _callable, _instance_callable,
 def async_test(f):
 
     def wrapper(*args, **kwargs):
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         loop.run_until_complete(f(*args, **kwargs))
 
     return wrapper

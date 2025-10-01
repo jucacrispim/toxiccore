@@ -2,6 +2,8 @@ language: python
 
 versions:
   - '3.11'
+  - '3.12'
+  - '3.13'
 
 
 system_packages:
@@ -19,11 +21,46 @@ steps:
   - name: Unit tests & coverage
     command: ./scripts/check_coverage.sh
 
-  - name: Release
-    command: ./scripts/release.sh
 
-  - name: Build docs
-    command: ./scripts/build_docs.sh
+builders:
+  - name: Docs & Release
+    branches:
+      - release
 
-  - name: Upload docs
-    command: ./scripts/upload_docs.sh
+    platform: python3.13
+
+    envvars:
+      ENV: ci
+
+    plugins:
+      - name: apt-install
+        packages:
+          - curl
+
+      - name: python-venv
+        pyversion: python3.13
+
+    steps:
+      - name: Build docs
+        command: ./scripts/build_docs.sh
+        stop_on_fail: true
+
+      - name: Build package
+        command: ./scripts/build_package.sh
+        stop_on_fail: true
+
+      - name: upload docs to pdj pypi
+        command: ./scripts/upload_to_pdj.sh
+
+      - name: upload docs to pypi
+        command: ./scripts/upload_to_pypi.sh
+
+
+      - name: upload docs
+        command: ./build-scripts/upload_docs.sh
+
+      - name: upload docs to pdj pypi
+        command: ./build-scripts/upload_to_pdj.sh
+
+      - name: upload docs to pypi
+        command: ./build-scripts/upload_to_pypi.sh

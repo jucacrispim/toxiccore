@@ -124,6 +124,21 @@ class UtilsTest(TestCase):
 
         self.assertEqual(B.m.__doc__, A.m.__doc__)
 
+    def test_inherit_docs_no_docs(self):
+
+        class A:
+
+            async def m():
+                return True
+
+        @utils.inherit_docs
+        class B(A):
+
+            async def m():
+                return False
+
+        self.assertEqual(B.m.__doc__, None)
+
     def test_format_timedelta(self):
         td = datetime.timedelta(seconds=97)
         expected = '0:01:37'
