@@ -49,9 +49,10 @@ class UtilsTest(TestCase):
     @async_test
     async def test_readline_incomplete(self):
         stream = AsyncMock()
-        r = await shell._readline(stream)
+        r, d = await shell._readline(stream)
 
         self.assertEqual(r, 'partial')
+        self.assertTrue(d)
 
     @patch.object(shell, '_try_readline', AsyncMock(
         side_effect=shell.LimitOverrunError('msg', 0)))
@@ -77,6 +78,13 @@ class UtilsTest(TestCase):
 
     @async_test
     async def test_exec_cmd(self):
+        out = await shell.exec_cmd('ls', cwd='.')
+        self.assertTrue(out)
+
+    @patch.object(shell, '_try_readline', AsyncMock(
+        side_effect=shell.IncompleteReadError(b'partial', 'exp')))
+    @async_test
+    async def test_exec_cmd_quick_exit(self):
         out = await shell.exec_cmd('ls', cwd='.')
         self.assertTrue(out)
 

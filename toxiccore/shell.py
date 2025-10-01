@@ -45,8 +45,10 @@ async def exec_cmd(cmd, cwd, timeout=3600, out_fn=None, **envvars):
 
     try:
         line_index = 0
-        while proc.returncode is None or not out:
-            outline = await asyncio.wait_for(_readline(proc.stdout), timeout)
+        done = False
+        while not done:
+            outline, done = await asyncio.wait_for(_readline(proc.stdout),
+                                                   timeout)
             outline = outline.decode()
             if out_fn:
                 ensure_future(out_fn(line_index, outline))
@@ -60,6 +62,7 @@ async def exec_cmd(cmd, cwd, timeout=3600, out_fn=None, **envvars):
         # dead.
         await _kill_group(proc)
 
+    await proc.wait()
     if int(proc.returncode) > 0:
         raise ExecCmdError(output)
 
@@ -122,7 +125,7 @@ async def _readline(stream):
     try:
         line = await _try_readline(stream)
     except IncompleteReadError as e:
-        return e.partial
+        return e.partial, True
     except LimitOverrunError as e:
         if stream._buffer.startswith(lf, e.consumed) or \
            stream._buffer.startswith(cr, e.consumed):
@@ -132,4 +135,4 @@ async def _readline(stream):
 
         stream._maybe_resume_transport()
         raise ValueError(e.args[0])
-    return line
+    return line, False
