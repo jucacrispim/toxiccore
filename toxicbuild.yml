@@ -35,6 +35,7 @@ builders:
     plugins:
       - name: apt-install
         packages:
+          - build-essential
           - curl
 
       - name: python-venv
