@@ -56,7 +56,6 @@ async def exec_cmd(cmd, cwd, timeout=3600, out_fn=None, **envvars):
             line_index += 1
             out.append(outline)
 
-        await proc.wait()
         output = ''.join(out).strip('\n')
     finally:
         # we must ensure that all process started by our command are
@@ -119,7 +118,6 @@ async def _readline(stream):
 
     :param stream: The StreamReader to read from.
     """
-
     # basically taken from asyncio.streams.StreamReader.readline
     lf, cr = b'\n', b'\r'
     seplen = 1

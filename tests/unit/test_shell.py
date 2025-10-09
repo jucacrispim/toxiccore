@@ -123,7 +123,6 @@ class UtilsTest(TestCase):
                    'MYPROGRAMVAR': 'something'}
 
         cmd = 'echo $MYPROGRAMVAR'
-
         returned = await shell.exec_cmd(cmd, cwd='.', **envvars)
 
         self.assertEqual(returned, 'something')
