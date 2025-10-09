@@ -56,12 +56,5 @@ builders:
       - name: upload docs to pypi
         command: ./scripts/upload_to_pypi.sh
 
-
       - name: upload docs
-        command: ./build-scripts/upload_docs.sh
-
-      - name: upload docs to pdj pypi
-        command: ./build-scripts/upload_to_pdj.sh
-
-      - name: upload docs to pypi
-        command: ./build-scripts/upload_to_pypi.sh
+        command: ./scripts/upload_docs.sh
