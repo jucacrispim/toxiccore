@@ -2,6 +2,10 @@ Changelog
 =========
 
 
+* v0.13.2
+
+  - Fix exec_cmd
+
 * v0.13.1
 
   - Kill command groups on exception
