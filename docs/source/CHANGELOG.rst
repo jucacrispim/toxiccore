@@ -2,6 +2,11 @@ Changelog
 =========
 
 
+* v0.13.3
+
+  - Fix AttributeError when loading settings on Python 3.12+ (import
+    importlib.util explicitly instead of relying on the import side-effect)
+
 * v0.13.2
 
   - Fix exec_cmd
