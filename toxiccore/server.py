@@ -79,5 +79,5 @@ class ToxicServer(LoggerMixin):
     async def shutdown(self):
         """Overwrite this to handle the shutdown of your server"""
 
-    def sync_shutdown(self):  # pragma no cover
+    def sync_shutdown(self, signum=None, frame=None):  # pragma no cover
         return self.loop.run_until_complete(self.shutdown())
