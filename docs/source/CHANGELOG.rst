@@ -2,6 +2,10 @@ Changelog
 =========
 
 
+* v0.13.4
+
+  - Add signum and frame params to ToxicServer.sync_shutdown method
+
 * v0.13.3
 
   - Fix AttributeError when loading settings on Python 3.12+ (import
