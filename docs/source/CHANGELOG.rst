@@ -2,6 +2,10 @@ Changelog
 =========
 
 
+* v0.13.5
+
+  - Fix timezone handling
+
 * v0.13.4
 
   - Add signum and frame params to ToxicServer.sync_shutdown method
