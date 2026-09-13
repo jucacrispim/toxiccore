@@ -2,6 +2,10 @@ Changelog
 =========
 
 
+* v0.13.6
+
+  - Fix handling of remote repositories
+
 * v0.13.5
 
   - Fix timezone handling

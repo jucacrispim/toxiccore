@@ -286,17 +286,61 @@ class GitTest(TestCase):
         await self.vcs.import_external_branch(external_url, external_name,
                                               external_branch, into)
         remote_added = self.vcs.add_remote.call_args[0]
-        remote_expected = (external_url, external_name)
+        remote_expected = (external_url, 'external')
         checkout = self.vcs.checkout.call_args[0][0]
         checkout_expected = 'other-repo:master'
         pull = self.vcs.pull.call_args[0]
-        pull_expected = (external_branch, external_name)
+        pull_expected = (external_branch, 'external')
         rm = self.vcs.rm_remote.call_args[0]
-        rm_expected = 'other-repo'
+        rm_expected = 'external'
         self.assertEqual(remote_added, remote_expected)
         self.assertEqual(checkout, checkout_expected)
         self.assertEqual(pull, pull_expected)
         self.assertEqual(rm, (rm_expected,))
+
+    @async_test
+    async def test_import_external_branch_invalid_remote_name(self):
+        # github sends the pull request head label ('owner:branch') which
+        # is not a valid git remote name
+        external_url = 'http://other-place.net/bla.git'
+        external_name = 'owner:branch'
+        external_branch = 'feature'
+        into = 'master'
+        self.vcs.branch_exists = mock.AsyncMock(spec=self.vcs.branch_exists,
+                                                return_value=True)
+        self.vcs.add_remote = mock.AsyncMock(spec=self.vcs.add_remote)
+        self.vcs.rm_remote = mock.AsyncMock(spec=self.vcs.rm_remote)
+        self.vcs.checkout = mock.AsyncMock(spec=self.vcs.checkout)
+        self.vcs.pull = mock.AsyncMock(spec=self.vcs.pull)
+        await self.vcs.import_external_branch(external_url, external_name,
+                                              external_branch, into)
+
+        remote_name = self.vcs.add_remote.call_args[0][1]
+        self.assertNotIn(':', remote_name)
+        self.assertEqual(self.vcs.pull.call_args[0][1], remote_name)
+        self.assertEqual(self.vcs.rm_remote.call_args[0][0], remote_name)
+
+    @async_test
+    async def test_import_external_branch_leftover_remote(self):
+        # a previous import that crashed may have left the remote behind,
+        # so the cleanup must not blow up when there is no remote to remove
+        external_url = 'http://other-place.net/bla.git'
+        external_name = 'other-repo'
+        external_branch = 'master'
+        into = 'other-repo:master'
+        self.vcs.branch_exists = mock.AsyncMock(spec=self.vcs.branch_exists,
+                                                return_value=True)
+        self.vcs.add_remote = mock.AsyncMock(spec=self.vcs.add_remote)
+        self.vcs.rm_remote = mock.AsyncMock(
+            spec=self.vcs.rm_remote, side_effect=[vcs.ExecCmdError, None])
+        self.vcs.checkout = mock.AsyncMock(spec=self.vcs.checkout)
+        self.vcs.pull = mock.AsyncMock(spec=self.vcs.pull)
+
+        await self.vcs.import_external_branch(external_url, external_name,
+                                              external_branch, into)
+
+        self.assertTrue(self.vcs.add_remote.called)
+        self.assertEqual(self.vcs.rm_remote.call_count, 2)
 
     @async_test
     async def test_import_external_branch_dont_exist(self):
@@ -317,11 +361,11 @@ class GitTest(TestCase):
         branch_created = self.vcs.create_local_branch.call_args[0]
         branch_expected = (into, 'master')
         remote_added = self.vcs.add_remote.call_args[0]
-        remote_expected = (external_url, external_name)
+        remote_expected = (external_url, 'external')
         checkout = self.vcs.checkout.call_args[0][0]
         checkout_expected = 'other-repo:master'
         pull = self.vcs.pull.call_args[0]
-        pull_expected = (external_branch, external_name)
+        pull_expected = (external_branch, 'external')
 
         self.assertEqual(branch_created, branch_expected)
         self.assertEqual(remote_added, remote_expected)

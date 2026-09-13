@@ -290,10 +290,23 @@ class Git(VCS):
         if not exists:
             await self.create_local_branch(into, 'master')
 
-        await self.add_remote(external_url, external_name)
-        await self.checkout(into)
-        await self.pull(external_branch, external_name)
-        await self.rm_remote(external_name)
+        # ``external_name`` is only used to identify the external repo and
+        # is not necessarily a valid git remote name (github, for example,
+        # uses 'owner:branch' for pull requests), so we use a fixed, valid
+        # name for the remote here.
+        remote_name = 'external'
+        # if a previous import crashed the remote may still be around
+        try:
+            await self.rm_remote(remote_name)
+        except ExecCmdError:
+            pass
+
+        await self.add_remote(external_url, remote_name)
+        try:
+            await self.checkout(into)
+            await self.pull(external_branch, remote_name)
+        finally:
+            await self.rm_remote(remote_name)
 
     async def branch_exists(self, branch_name):
         cmd = '{} rev-parse --verify {}'.format(self.vcsbin, branch_name)
