@@ -473,6 +473,34 @@ class GitTest(TestCase):
         self.assertEqual(revisions[0]['commit'], '0sdflf095')
 
     @async_test
+    async def test_get_revisions_for_branch_not_returning_known_rev(self):
+        # git does not always return the last consumed revision (eg: when
+        # the since date is off). In that case the first revision is a new
+        # one and must not be dropped.
+        since = datetime.datetime(2014, 10, 20, 5, 0, 0,
+                                  tzinfo=datetime.timezone.utc)
+        local = utils.utc2localtime(since)
+
+        commit_fmt = "%H | %ad | %an | %s | %+b {}".format(
+            self.vcs._commit_separator)
+        expected_cmd = '{} log --pretty=format:"{}" '.format('git',
+                                                             commit_fmt)
+        expected_cmd += '--since="{}" --date=local'.format(
+            datetime.datetime.strftime(local, self.vcs.date_format))
+
+        async def e(*a, **kw):
+            assert a[0] == expected_cmd, a[0]
+            log = '0sdflf093 | Thu Oct 20 16:30:23 2014 '
+            log += '| zezinha do butiá | some good commit | <end-toxiccommit>'
+            return log
+
+        vcs.exec_cmd = e
+        revisions = await self.vcs.get_revisions_for_branch('master',
+                                                            since=since)
+        self.assertEqual(len(revisions), 1)
+        self.assertEqual(revisions[0]['commit'], '0sdflf093')
+
+    @async_test
     async def test_get_local_revisions(self):
         now = datetime.datetime.now()
         since = {'master': now,

@@ -394,7 +394,14 @@ class Git(VCS):
                               'author': author, 'title': title, 'body': body})
 
         # The thing here is that the first revision in the list
-        # is the last one consumed on last time
+        # is the last one consumed on last time. We only drop it if it
+        # really is that revision: if for some reason git does not return
+        # it, the first item would be a new revision and dropping it
+        # would silently lose it.
+        if revisions and since is not None \
+                and revisions[0]['commit_date'] > since:
+            return revisions
+
         return revisions[1:]
 
     async def get_remote_branches(self):

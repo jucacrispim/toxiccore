@@ -201,6 +201,22 @@ class UtilsTest(TestCase):
         self.assertEqual(utc.hour, expected.hour)
         self.assertEqual(utc.utcoffset().total_seconds(), 0)
 
+    def test_utc2localtime_with_dst(self):
+        # the offset must be computed for the given date and not for
+        # 'now', otherwise dates that cross a daylight saving time change
+        # are off by one hour.
+        with patch.dict(os.environ, {'TZ': 'Europe/Berlin'}):
+            time.tzset()
+            winter = datetime.datetime(2025, 12, 25, 15, 57, 17,
+                                       tzinfo=datetime.timezone.utc)
+            summer = datetime.datetime(2026, 9, 12, 1, 53, 13,
+                                       tzinfo=datetime.timezone.utc)
+            self.assertEqual(utils.utc2localtime(winter).strftime('%H:%M'),
+                             '16:57')
+            self.assertEqual(utils.utc2localtime(summer).strftime('%H:%M'),
+                             '03:53')
+        time.tzset()
+
     def test_now(self):
         n = utils.now()
         self.assertEqual(n.utcoffset().total_seconds(),

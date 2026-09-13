@@ -252,33 +252,28 @@ def utc2localtime(utcdatetime):
     """Transforms a utc datetime object into a datetime object
     in local time.
 
+    The offset is computed for the given instant, so it takes daylight
+    saving time into account. A naive datetime is considered to be utc.
+
     :param utcdatetime: A datetime object"""
 
-    off = time.localtime().tm_gmtoff
-    td = timedelta(seconds=off)
-    tz = timezone(td)
-    local = utcdatetime + td
-    localtime = datetime(local.year, local.month, local.day,
-                         local.hour, local.minute, local.second,
-                         local.microsecond,
-                         tzinfo=tz)
-    return localtime
+    if utcdatetime.tzinfo is None:
+        utcdatetime = utcdatetime.replace(tzinfo=timezone.utc)
+
+    return utcdatetime.astimezone()
 
 
 def localtime2utc(localdatetime):
     """Transforms a local datetime object into a datetime object
     in utc time.
 
+    The offset is computed for the given instant, so it takes daylight
+    saving time into account. A naive datetime is considered to be in
+    local time.
+
     :param localdatetime: A datetime object."""
-    off = time.localtime().tm_gmtoff
-    td = timedelta(seconds=off)
-    utc = localdatetime - td
-    utctz = timezone(timedelta(seconds=0))
-    utctime = datetime(utc.year, utc.month, utc.day,
-                       utc.hour, utc.minute, utc.second,
-                       utc.microsecond,
-                       tzinfo=utctz)
-    return utctime
+
+    return localdatetime.astimezone(timezone.utc)
 
 
 def now():
