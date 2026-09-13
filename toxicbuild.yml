@@ -1,7 +1,6 @@
 language: python
 
 versions:
-  - '3.11'
   - '3.12'
   - '3.13'
 
