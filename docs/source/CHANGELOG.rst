@@ -2,6 +2,10 @@ Changelog
 =========
 
 
+* v0.14.0
+
+  - Add optional data to create_validation_string
+
 * v0.13.6
 
   - Fix handling of remote repositories
