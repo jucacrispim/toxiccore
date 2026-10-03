@@ -267,6 +267,19 @@ class UtilsTest(TestCase):
 
         self.assertFalse(utils.validate_string(b64str, bad_secret))
 
+    def test_validation_string_with_data(self):
+        secret = '1234'
+        b64str = utils.create_validation_string(secret, 'some-data')
+
+        self.assertEqual(utils.validate_string(b64str, secret), 'some-data')
+
+    def test_validation_string_with_data_bad(self):
+        secret = '1234'
+        bad_secret = '123'
+        b64str = utils.create_validation_string(secret, 'some-data')
+
+        self.assertFalse(utils.validate_string(b64str, bad_secret))
+
     @patch.object(utils, 'log', Mock())
     def test_validation_string_exception(self):
         secret = '1234'

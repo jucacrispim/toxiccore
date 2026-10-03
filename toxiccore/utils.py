@@ -347,19 +347,26 @@ def create_random_string(length):
     return random_str
 
 
-def create_validation_string(secret):
+def create_validation_string(secret, data=None):
     """Creates a random string that can be used to validate
     against it. The algorithm is as follows:
 
     Given a secret, a random string is generated, then <secret>-<random-str>
-    are encrypted using bcrypt. Finally <encrypted-str>:<random-str>
+    are encrypted using bcrypt. Finally <encrypted-str>:<random-str>[:<data>]
     are base64 encoded.
+
+    :param secret: The secret used to sign the string.
+    :param data: Optional data to be bound to the string. When given it is
+      embedded (in clear) in the string and returned by
+      :func:`~..utils.validate_string` when the string is valid.
     """
 
     random_str = create_random_string(12)
     enc = bcrypt_string('{}-{}'.format(secret, random_str))
-    final = base64.encodebytes(
-        '{}:{}'.format(enc, random_str).encode('utf-8')).decode()
+    real = '{}:{}'.format(enc, random_str)
+    if data is not None:
+        real = '{}:{}:{}'.format(enc, random_str, data)
+    final = base64.encodebytes(real.encode('utf-8')).decode()
     return final
 
 
@@ -369,18 +376,27 @@ def validate_string(b64_str, secret):
 
     Given a base64 string the validation is as follows:
 
-    First decodes the base64 string in <encrypted-string>:<random-str> then
-    bcrypt-compare <secret>-<random-str> with <encrypted-string>
+    First decodes the base64 string in
+    <encrypted-string>:<random-str>[:<data>] then bcrypt-compare
+    <secret>-<random-str> with <encrypted-string>.
+
+    Returns the embedded ``data`` if the string is valid and carries data,
+    ``True`` if the string is valid and carries no data or ``False`` if the
+    string is not valid.
     """
 
     try:
         real = base64.decodebytes(b64_str.encode()).decode()
-        enc, random_sr = real.split(':')
+        enc, random_sr, data = (real.split(':', 2) + [None])[:3]
     except Exception as e:
         log('Error validating string: {}'.format(str(e)), level='error')
         return False
     else:
-        return compare_bcrypt_string('{}-{}'.format(secret, random_sr), enc)
+        if not compare_bcrypt_string(
+                '{}-{}'.format(secret, random_sr), enc):
+            return False
+
+        return data if data is not None else True
 
 
 class changedir(object):
