@@ -127,6 +127,13 @@ class GitTest(TestCase):
         super(GitTest, self).setUp()
         self.vcs = vcs.Git('/some/workdir')
 
+    def _log_entry(self, commit, date, author, title, body=''):
+        """Builds a git log entry using the same format used by Git."""
+
+        entry = self.vcs._field_separator.join([commit, date, author,
+                                               title, body])
+        return entry + self.vcs._commit_separator
+
     @async_test
     async def test_set_remote_origin_config(self):
         await self.vcs._set_remote_origin_config()
@@ -457,8 +464,7 @@ class GitTest(TestCase):
         now = utils.now()
         local = utils.utc2localtime(now)
 
-        commit_fmt = "%H | %ad | %an | %s | %+b {}".format(
-            self.vcs._commit_separator)
+        commit_fmt = "%H%x00%ad%x00%an%x00%s%x00%b%x1e"
 
         expected_cmd = '{} log --pretty=format:"{}" '.\
                        format('git', commit_fmt)
@@ -466,19 +472,21 @@ class GitTest(TestCase):
         expected_cmd += '--since="{}" --date=local'.format(
             datetime.datetime.strftime(local, self.vcs.date_format))
 
-        body = '\n\nObrigado deus dos maronitas.\nFadul Abdala\n'
+        # commit messages/titles may contain ' | ' (and anything else),
+        # so we use NUL as field separator
+        body = 'Obrigado deus | dos maronitas.\nFadul Abdala\n'
         body += 'O Grão-turco das putas.'
 
         async def e(*a, **kw):
             assert a[0] == expected_cmd, a[0]
-            log = '0sdflf093 | Thu Oct 20 16:30:23 2014 '
-            log += '| zezinha do butiá | some good commit | <end-toxiccommit>'
-            log += '\n0sdflf095 | Thu Oct 20 16:20:23 2014 '
-            log += '| seu fadu | Other good commit. | '
-            log += body + '<end-toxiccommit>\n'
-            log += '09s80f9asdf | Thu Oct 20 16:10:23 2014 '
-            log += '| capitão natário | I was the last consumed\n | '
-            log += '<end-toxiccommit>\n'
+            log = self._log_entry('0sdflf093', 'Thu Oct 20 16:30:23 2014',
+                                  'zezinha do butiá', 'some good commit')
+            log += '\n' + self._log_entry(
+                '0sdflf095', 'Thu Oct 20 16:20:23 2014', 'seu fadu',
+                'Other | good commit.', body + '\n')
+            log += '\n' + self._log_entry(
+                '09s80f9asdf', 'Thu Oct 20 16:10:23 2014', 'capitão natário',
+                'I was the last consumed')
             return log
 
         vcs.exec_cmd = e
@@ -487,29 +495,29 @@ class GitTest(TestCase):
         # The first revision is the older one
         self.assertEqual(revisions[0]['author'], 'seu fadu')
         self.assertEqual(revisions[0]['body'], body)
+        self.assertEqual(revisions[0]['title'], 'Other | good commit.')
         self.assertEqual(revisions[1]['commit'], '0sdflf093')
 
     @async_test
     async def test_get_revisions_for_branch_without_since(self):
-        commit_fmt = "%H | %ad | %an | %s | %+b {}".format(
-            self.vcs._commit_separator)
+        commit_fmt = "%H%x00%ad%x00%an%x00%s%x00%b%x1e"
 
         expected_cmd = '{} log --pretty=format:"{}" {}'.\
                        format('git', commit_fmt, '--date=local')
 
-        body = '\n\nObrigado deus dos maronitas.\nFadul Abdala\n'
+        body = 'Obrigado deus dos maronitas.\nFadul Abdala\n'
         body += 'O Grão-turco das putas.'
 
         async def e(*a, **kw):
             assert a[0] == expected_cmd, a[0]
-            log = '0sdflf093 | Thu Oct 20 16:30:23 2014 '
-            log += '| zezinha do butiá | some good commit | <end-toxiccommit>'
-            log += '\n0sdflf095 | Thu Oct 20 16:20:23 2014 '
-            log += '| seu fadu | Other good commit. | '
-            log += body + '<end-toxiccommit>\n'
-            log += '09s80f9asdf | Thu Oct 20 16:10:23 2014 '
-            log += '| capitão natário | I was the last consumed\n | '
-            log += '<end-toxiccommit>\n'
+            log = self._log_entry('0sdflf093', 'Thu Oct 20 16:30:23 2014',
+                                  'zezinha do butiá', 'some good commit')
+            log += '\n' + self._log_entry(
+                '0sdflf095', 'Thu Oct 20 16:20:23 2014', 'seu fadu',
+                'Other good commit.', body + '\n')
+            log += '\n' + self._log_entry(
+                '09s80f9asdf', 'Thu Oct 20 16:10:23 2014', 'capitão natário',
+                'I was the last consumed')
             return log
 
         vcs.exec_cmd = e
@@ -525,8 +533,7 @@ class GitTest(TestCase):
                                   tzinfo=datetime.timezone.utc)
         local = utils.utc2localtime(since)
 
-        commit_fmt = "%H | %ad | %an | %s | %+b {}".format(
-            self.vcs._commit_separator)
+        commit_fmt = "%H%x00%ad%x00%an%x00%s%x00%b%x1e"
         expected_cmd = '{} log --pretty=format:"{}" '.format('git',
                                                              commit_fmt)
         expected_cmd += '--since="{}" --date=local'.format(
@@ -534,8 +541,8 @@ class GitTest(TestCase):
 
         async def e(*a, **kw):
             assert a[0] == expected_cmd, a[0]
-            log = '0sdflf093 | Thu Oct 20 16:30:23 2014 '
-            log += '| zezinha do butiá | some good commit | <end-toxiccommit>'
+            log = self._log_entry('0sdflf093', 'Thu Oct 20 16:30:23 2014',
+                                  'zezinha do butiá', 'some good commit')
             return log
 
         vcs.exec_cmd = e
@@ -543,6 +550,36 @@ class GitTest(TestCase):
                                                             since=since)
         self.assertEqual(len(revisions), 1)
         self.assertEqual(revisions[0]['commit'], '0sdflf093')
+
+    @async_test
+    async def test_get_revisions_for_branch_without_body_field(self):
+        # A truncated/malformed log entry may come without the body field
+        # at all (git always sends the trailing separator, but we should
+        # not blow up if a field is missing).
+        since = datetime.datetime(2014, 10, 20, 5, 0, 0,
+                                  tzinfo=datetime.timezone.utc)
+        local = utils.utc2localtime(since)
+
+        commit_fmt = "%H%x00%ad%x00%an%x00%s%x00%b%x1e"
+        expected_cmd = '{} log --pretty=format:"{}" '.format('git',
+                                                             commit_fmt)
+        expected_cmd += '--since="{}" --date=local'.format(
+            datetime.datetime.strftime(local, self.vcs.date_format))
+
+        async def e(*a, **kw):
+            assert a[0] == expected_cmd, a[0]
+            entry = self.vcs._field_separator.join(
+                ['0sdflf093', 'Thu Oct 20 16:30:23 2014',
+                 'zezinha do butiá', 'some good commit'])
+            return entry + self.vcs._commit_separator
+
+        vcs.exec_cmd = e
+        revisions = await self.vcs.get_revisions_for_branch('master',
+                                                            since=since)
+        self.assertEqual(len(revisions), 1)
+        self.assertEqual(revisions[0]['commit'], '0sdflf093')
+        self.assertEqual(revisions[0]['title'], 'some good commit')
+        self.assertEqual(revisions[0]['body'], '')
 
     @async_test
     async def test_get_local_revisions(self):

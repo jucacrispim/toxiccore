@@ -196,7 +196,11 @@ class Git(VCS):
     # this date_format is used to ask git about revisions since
     # some date
     date_format = '%a %b %d %H:%M:%S %Y'
-    _commit_separator = '<end-toxiccommit>'
+    # Field separator used when parsing git log output. A NUL byte can
+    # not appear in a commit object, so it's safe as a field separator.
+    _field_separator = '\x00'
+    # Record separator, put at the end of every commit entry.
+    _commit_separator = '\x1e'
 
     async def _set_remote_origin_config(self):
         # when we do a shallow clone of a repo, we need to
@@ -372,9 +376,8 @@ class Git(VCS):
         return revisions
 
     async def get_revisions_for_branch(self, branch, since=None):
-        # hash | commit date | author | title
-        commit_fmt = "%H | %ad | %an | %s | %+b {}".format(
-            self._commit_separator)
+        # hash \0 commit date \0 author \0 title \0 body \x1e
+        commit_fmt = "%H%x00%ad%x00%an%x00%s%x00%b%x1e"
         cmd = '{} log --pretty=format:"{}" '.format(
             self.vcsbin, commit_fmt)
         if since:
@@ -391,20 +394,29 @@ class Git(VCS):
         msg = 'Getting revisions for branch {} with command {}'.format(
             branch, cmd)
         self.log(msg, level='debug')
-        last_revs = [r for r in (await self.exec_cmd(cmd)).split(
-            self._commit_separator + '\n') if r]
+        output = await self.exec_cmd(cmd)
+        # git adds a newline after each commit entry, so we strip the
+        # newlines around every record.
+        last_revs = [r.strip('\n') for r in
+                     output.split(self._commit_separator)]
+        last_revs = [r for r in last_revs if r]
         last_revs.reverse()
         self.log('Got {}'.format(last_revs), level='debug')
         revisions = []
 
         for rev in last_revs:
-            rev_uuid, date, author, title, body = rev.split(' | ')
+            parts = rev.split(self._field_separator, 4)
+            if len(parts) < 5:
+                # commits without a body have no body field at all
+                parts.append('')
+            rev_uuid, date, author, title, body = parts
             date = string2datetime(date.strip(), dtformat=self.date_format)
             # Here we change the date from git, that is in localtime to
             # utc before saving to database.
             date = localtime2utc(date)
             revisions.append({'commit': rev_uuid.strip(), 'commit_date': date,
-                              'author': author, 'title': title, 'body': body})
+                              'author': author, 'title': title,
+                              'body': body.strip('\n')})
 
         # The thing here is that the first revision in the list
         # is the last one consumed on last time. We only drop it if it
