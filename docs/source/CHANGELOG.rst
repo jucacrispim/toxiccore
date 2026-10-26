@@ -2,6 +2,10 @@ Changelog
 =========
 
 
+* v0.15.0
+
+  - Fix parsing of git log when the commit message contains a pipe separator
+
 * v0.14.0
 
   - Add optional data to create_validation_string
